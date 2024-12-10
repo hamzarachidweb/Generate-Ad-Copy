@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Ad Copy</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="text-center">Generate Ad Copy</h1>
+
+        <div class="form-group">
+            <label for="campaign_name">Product Name:</label>
+            <input type="text" id="campaign_name" name="campaign_name" class="form-control" required
+                placeholder="Enter the product name here..."
+                oninput="handleCampaignNameInput(this.value);">
+        </div>
+        <br>
+
+        <div class="form-group">
+            <label for="ad_copy">Ad Copy:</label>
+            <textarea id="ad_copy" name="ad_copy" class="form-control" rows="4" readonly
+                placeholder="Ad copy will be generated here..."></textarea>
+        </div>
+
+
+    </div>
+
+    <script>
+        async function generateAdCopy(productName) {
+            if (productName.length < 3) {
+                document.getElementById('ad_copy').value = '';
+                return;
+            }
+            // Replace with your own API key
+            const apiKey = 'sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'; 
+            const endpoint = 'https://api.openai.com/v1/chat/completions'; 
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo', 
+                        messages: [{
+                            role: 'system',
+                            content: 'You are a helpful assistant.'
+                        }, {
+                            role: 'user',
+                            content: `Write a short and distinctive advertisement text for a product named "${productName}" in the language of "${productName}", consisting of 5 paragraphs. Each paragraph should not exceed 25 words. The text should include icons, with a space between each paragraph.`
+                        }],
+                        max_tokens: 100,
+                        temperature: 0.7
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorDetails = await response.text();
+                    throw new Error(`HTTP Error: ${response.status}, Details: ${errorDetails}`);
+                }
+
+                const data = await response.json();
+                const adText = data.choices[0]?.message?.content.trim() || 'No text generated.';
+                document.getElementById('ad_copy').value = adText;
+            } catch (error) {
+                console.error('Error generating ad copy:', error);
+                document.getElementById('ad_copy').value = `Error: ${error.message}`;
+            }
+        }
+        function handleCampaignNameInput(value) {
+            generateAdCopy(value);
+        }
+    </script>
+</body>
+
+</html>
